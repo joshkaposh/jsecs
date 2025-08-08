@@ -8,14 +8,18 @@
     "view-report": "turbo run view-report"
   },
   "devDependencies": {
-    "@repo/vitest-config": "workspace:*",
+    "@repo/vitest-config": "*",
     "prettier": "^3.5.0",
     "turbo": "^2.5.5",
     "typescript": "5.7.3",
     "vitest": "^3.2.4"
   },
-  "packageManager": "pnpm@9.0.0",
   "engines": {
     "node": ">=18"
-  }
+  },
+  "packageManager": "npm@11.4.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
 }
