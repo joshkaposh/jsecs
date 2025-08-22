@@ -1,0 +1,1 @@
+export { Component, entities, require } from './component';

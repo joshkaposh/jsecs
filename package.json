@@ -1,18 +1,15 @@
 {
-  "name": "vitest",
+  "name": "jsecs",
   "private": true,
   "scripts": {
-    "test": "turbo run test",
-    "test:projects": "vitest run",
-    "test:projects:watch": "vitest --watch",
-    "view-report": "turbo run view-report"
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "build": "bun run --filter \"*\" build"
   },
   "devDependencies": {
-    "@repo/vitest-config": "*",
     "prettier": "^3.5.0",
     "turbo": "^2.5.5",
-    "typescript": "5.7.3",
-    "vitest": "^3.2.4"
+    "typescript": "latest"
   },
   "engines": {
     "node": ">=18"
@@ -20,6 +17,7 @@
   "packageManager": "npm@11.4.2",
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "performance/*"
   ]
 }

@@ -1,0 +1,14 @@
+{
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "extends": "./base.json",
+    "compilerOptions": {
+        "lib": [
+            "ESNext",
+            "ESNext.Disposable",
+            "ESNext.Error",
+            "ESNext.Sharedmemory",
+            "ESNext.Iterator",
+            "ES2024.ArrayBuffer"
+        ],
+    }
+}

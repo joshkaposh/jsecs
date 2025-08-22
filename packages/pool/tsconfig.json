@@ -1,0 +1,6 @@
+{
+    "extends": "@repo/typscript-config/base.json",
+    "compilerOptions": {
+        "rootDir": "src",
+    },
+}

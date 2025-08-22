@@ -1,4 +1,4 @@
-import { expect, test } from "vitest";
+import { expect, test } from "bun:test";
 import { add } from "../src/add";
 import { subtract } from "../src/subtract";
 

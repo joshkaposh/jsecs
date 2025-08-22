@@ -1,0 +1,9 @@
+{
+    "extends": "@repo/typescript-config/jsecs.json",
+    "compilerOptions": {
+        "rootDir": "src"
+    },
+    "include": [
+        "src"
+    ]
+}
