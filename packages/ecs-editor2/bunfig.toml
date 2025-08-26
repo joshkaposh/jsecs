@@ -1,0 +1,3 @@
+jsx = "solid"
+jsxImportSource = "solid-js"
+preload = ["bun-plugin-solid"]

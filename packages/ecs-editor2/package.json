@@ -1,0 +1,22 @@
+{
+  "name": "ecs-editor2",
+  "module": "index.ts",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "bun-plugin-solid": "^1.0.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "private": true,
+  "scripts": {
+    "dev": "bun ./server.ts",
+    "dev:watch": "bun ./server.ts",
+    "build": "bun ./scripts/build.ts",
+    "build:watch": "bun build index.html --watch"
+  },
+  "type": "module",
+  "dependencies": {
+    "@solidjs/router": "^0.15.3"
+  }
+}
