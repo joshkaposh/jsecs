@@ -1,195 +1,94 @@
 import { Glob } from "bun";
-import { Project, SourceFile, StructureKind, SyntaxKind, TypeAliasDeclaration, TypeChecker, type InterfaceDeclarationStructure, type TypeAliasDeclarationStructure } from 'ts-morph';
+import { type Node, Project, SourceFile, Structure, SyntaxKind, type ImportSpecifierStructure, type InterfaceDeclarationStructure, type OptionalKind } from 'ts-morph';
 import { normalize } from 'node:path';
 import { bit } from 'joshkaposh-option'
-type Flags = number;
-const FLAGS = 0 as number;
-const INSTANCE = 1 as number;
-const STATIC = 2 as number;
-const PROVIDED = 3 as number;
-const REQUIRED = 4 as number;
+import { Flags, TraitMeta, type MethodMetadata, type TraitMetadata, type TraitsMetadata } from "./trait-meta";
 
-const Flags = {
-    flags: FLAGS as number,
-    instance: INSTANCE,
-    static: STATIC,
-    provided: PROVIDED,
-    required: REQUIRED,
-    check(flags: Flags): Flags {
-        if (bit.check(flags, INSTANCE)) {
-            bit.clear(flags, STATIC);
-        }
+const meta = new TraitMeta(process.cwd());
 
-        if (bit.check(flags, PROVIDED)) {
-            bit.clear(flags, REQUIRED);
-        }
-        return flags;
-    },
-    format(flags: Flags) {
-        let result = '';
-        if ((flags & INSTANCE) !== 0) {
-            result += 'instance';
-        } else {
-            result += 'static';
-        }
-
-        if ((flags & PROVIDED) !== 0) {
-            result += ", provided";
-        } else {
-            result += ', required';
-        }
-        return result;
-    }
-} as const;
-
-type TraitMetadata = {
-    filePath: string;
-    name: string;
-    methods: {
-        all: { name: string; flags: Flags }[];
-        static: string[];
-        instance: string[];
-    };
-    implementations: Record<string, string[]>;
-};
-
-type MethodMetadata = TraitMetadata['methods'];
-
-// function extractMetadata(aliases: TypeAliasDeclaration[], file_traits: Set<string>, type_checker: TypeChecker, output_map: Map<string, any>) {
-//     for (let i = 0; i < aliases.length; i++) {
-//         const alias = aliases[i]!;
-//         const type = alias.getType(),
-//             name = alias.getName();
-
-//         if (file_traits.has(name)) {
-//             const properties = type_checker.getPropertiesOfType(type);
-//             const required = [];
-//             const provided = [];
-
-//             for (let i = 0; i < properties.length; i++) {
-//                 const p = properties[i]!;
-//                 const name = p.getName();
-//                 p.isOptional() ? provided.push(name) : required.push(name);
-//             }
-
-//             output_map.set(name, {
-//                 name: name,
-//                 required: required,
-//                 provided: provided,
-//                 implementations: []
-//             })
-//         }
-
-//     }
-//     // for (let i = 0; i < array.length; i++) {
-//     //     const element = array[i];
-//     // }
-//     // file_traits.map(name => {
-//     //     const alias = srcFile.getTypeAlias(name)!;
-
-//     //     const properties = type_checker.getPropertiesOfType(alias.getType());
-//     //     const required = [];
-//     //     const provided = [];
-//     //     for (let i = 0; i < properties.length; i++) {
-//     //         const p = properties[i]!;
-//     //         const name = p.getName();
-//     //         p.isOptional() ? provided.push(name) : required.push(name);
-//     //     }
-
-//     //     return {
-//     //         name: name,
-//     //         required: required,
-//     //         provided: provided,
-//     //         implementations: []
-//     //     }
-//     // });
-// }
-
-function parseTraitFileAndSetMetadata(
-    project: Project,
-    filePath: string,
+function parseTraitFile(
     aliases: InterfaceDeclarationStructure[],
-    type_checker: TypeChecker,
-    traits: Map<string, TraitMetadata>,
+    traits: Record<string, TraitMetadata>,
+    trait_names: string[]
 ) {
-    console.log('interfaces: ', aliases.map(a => a.name));
-
-    // const file_traits = new Map<string, TraitMetadata>()
-
     for (let i = 0; i < aliases.length; i++) {
         const alias = aliases[i]!;
-        console.log('Interface name: ', alias.name);
+        const methods = alias.methods ?? [];
+        const trait_methods: MethodMetadata = {
+            names: [],
+            all: {},
+            static: {},
+            instance: {},
+            provided: {},
+            required: {}
+        };
 
-        try {
-            const methods = alias.methods ?? [];
-            const trait_methods: MethodMetadata = {
-                all: [],
-                static: [],
-                instance: [],
-            };
-            const trait_meta: TraitMetadata = {
-                name: alias.name,
-                filePath: filePath,
-                implementations: Object.create(null),
-                methods: trait_methods
-            };
+        const trait_meta: TraitMetadata = {
+            name: alias.name,
+            implementations: Object.create(null),
+            methods: trait_methods
+        };
 
-            const { all, static: statics, instance } = trait_methods;
-            for (let i = 0; i < methods.length; i++) {
-                const m = methods[i]!;
-                const isStatic = m.parameters?.[0]?.name !== 'this';
-                const isProvided = m.hasQuestionToken;
-                const name = m.name;
+        const { all, names, static: statics, instance, required, provided } = trait_methods;
 
-                let flags = Flags.flags;
+        for (let i = 0; i < methods.length; i++) {
 
-                flags |= Number(isStatic);
-                flags |= Number(isProvided);
+            const m = methods[i]!;
+            const isStatic = m.parameters?.[0]?.name !== 'this';
+            const isProvided = m.hasQuestionToken ?? false;
+            const name = m.name;
 
-                all.push({
-                    name: name,
-                    flags: flags
-                });
+            let flags = Flags.flags;
 
-                isStatic ?
-                    statics.push(name) :
-                    instance.push(name);
+            flags = bit.set(flags, isStatic ? Flags.static : Flags.instance);
+            flags = bit.set(flags, isProvided ? Flags.provided : Flags.required);
 
+            names.push(name);
+            all[name] = flags;
+
+            if (isStatic) {
+                statics[name] = '';
+            } else {
+                instance[name] = '';
             }
 
-            traits.set(alias.name, trait_meta);
+            if (isProvided) {
+                provided[name] = ''
+            } else {
+                statics[name] = ''
+            }
 
-        } catch (error) {
-            const name = alias.name;
-            throw new Error(`Failed to parse ${name}. expected this type be in the form of "type ${name} = [TraitName]"`)
+            // isStatic ?
+            //     statics.push(name) :
+            //     instance.push(name);
+
         }
+
+
+        trait_names.push(trait_meta.name);
+        traits[trait_meta.name] = trait_meta;
     }
 }
 
-function findTraitFilesFast() {
-    const s = performance.now()
-    const files = new Glob('**/*.trait.ts').scan('.');
-    console.log('findTraitFilesFast: ', (performance.now() - s) / 1000);
-    return files;
+function findTraitFilesFast(file_extentions?: string, rootDir?: string) {
+    return new Glob(`**/*${file_extentions ?? '.trait'}.ts`).scan(rootDir ?? '.');
 }
 
 async function findConfigFiles(glob: Glob, root: string, scan: string, trait_files: Set<string>) {
     const old_len = trait_files.size;
-    const start = performance.now();
     for await (const file of glob.scan(scan)) {
-        console.log(`config ${file}`);
 
         const config = await import(`${root}/${file}`);
         if (!config.traits) {
             continue;
         }
 
+        console.log(`using config: ${file}`);
         const traits = config.traits;
         if (typeof traits === 'string') {
             if (configStringPredicate(traits)) {
                 continue;
             }
-            console.log('using config file');
             trait_files.add(normalize(`${root}/${traits}`));
         } else if (Array.isArray(traits)) {
             for (let i = 0; i < traits.length; i++) {
@@ -197,15 +96,13 @@ async function findConfigFiles(glob: Glob, root: string, scan: string, trait_fil
                 if (configStringPredicate(filename)) {
                     continue;
                 }
-                console.log('using config file');
+                // console.log(`using config: ${filename}`);
                 trait_files.add(filename);
             }
         }
     }
-    console.log('scanned config files in ', (performance.now() - start) / 1000);
     return old_len !== trait_files.size;
 }
-
 
 function configStringPredicate(string: string) {
     return string === '' || !string.endsWith('.ts')
@@ -221,53 +118,126 @@ function addManySet<T>(set: Set<T>, array: T[]) {
     }
 }
 
-export async function GetTraits(force_crawl?: boolean) {
-    const project = new Project();
-    const traits = new Map();
-    const type_checker = project.getTypeChecker();
-
-    const root = process.cwd();
+async function GetTraitFiles(): Promise<string[]> {
+    const root = meta.cwd;
     const glob = new Glob('**/traits.{toml, json}');
-
-    // if (files == null || files === '') {
-    //     files = [];
-    // } else if (typeof files === 'string') {
-    //     files = [files];
-    // }
-
-    // console.log('Config files: ', files);
-
     const trait_files = new Set<string>();
 
     if (!await findConfigFiles(glob, root, '.', trait_files)) {
         console.warn('No {traits, trait}.{toml, json} file was found in this project. Falling back to scanning for *.trait.ts');
         addManySet(trait_files, await Array.fromAsync(findTraitFilesFast()));
     }
-    console.log('after findConfigFiles', trait_files);
 
-    let start = performance.now();
+    return Array.from(trait_files);
+}
 
-    project.forgetNodesCreatedInBlock(() => {
-        const trait_file_arr = Array.from(trait_files)
-        project.addSourceFilesAtPaths(trait_file_arr);
-        console.log("Trait Paths: ", trait_file_arr);
+export function GetTraitMetadata(trait_name: string) {
+    return meta.get(trait_name)!;
+}
 
-        for (let i = 0; i < trait_file_arr.length; i++) {
-            const filePath = trait_file_arr[i]!;
-            const srcFile = project.getSourceFileOrThrow(filePath);
-            const interfaces = srcFile.getInterfaces().map(i => i.getStructure());
-            parseTraitFileAndSetMetadata(project, filePath, interfaces, type_checker, traits);
+function traverse(node: Node, visit: (node: Node) => Node | undefined) {
+    const child = node.forEachDescendant((node, traversal) => {
+        if (node.getKind() === SyntaxKind.CallExpression) {
+            return node;
         }
     });
 
-    console.log('parse traits.ts from config', (performance.now() - start) / 1000);
-
-    const output = Object.fromEntries(traits.entries());
-
-    await Bun.file(`${root}/.trait-metadata.json`).write(JSON.stringify(output));
-    return output;
+    if (child) {
+        return traverse(child, visit);
+    } else {
+        return node;
+    }
 }
 
-// if (force_crawl) {
-//     addManySet(trait_files, await Array.fromAsync(findTraitFilesFast()));
-// }
+export async function GetTraitDefinitions() {
+    const project = new Project();
+    const root = meta.cwd;
+
+    let start = performance.now();
+    const trait_files = await GetTraitFiles();
+    console.log('trait file resolution time: ', (performance.now() - start) / 1000)
+    start = performance.now();
+
+    const transpiler = new Bun.Transpiler({
+        loader: 'ts',
+        allowBunRuntime: true,
+        trimUnusedImports: false
+    });
+
+    project.forgetNodesCreatedInBlock(() => project.addSourceFilesAtPaths(trait_files));
+    for (let i = 0; i < trait_files.length; i++) {
+        const filePath = trait_files[i]!;
+
+        const file = await Bun.file(filePath).text();
+        const scan = transpiler.scan(file);
+        if (!scan.exports.includes('Trait')) {
+            continue;
+        }
+
+        project.forgetNodesCreatedInBlock(() => {
+            const srcFile = project.getSourceFileOrThrow(filePath);
+            const fileName = srcFile.getBaseNameWithoutExtension();
+            const interfaces = srcFile.getInterfaces();
+            const traits: Record<string, TraitMetadata> = {};
+            const registered_trait_names: string[] = [];
+            if (interfaces.length > 0) {
+                parseTraitFile(
+                    interfaces.map(i => i.getStructure()),
+                    traits,
+                    registered_trait_names
+                );
+
+                meta.add({
+                    name: fileName,
+                    filePath: filePath,
+                    traits
+                });
+            }
+
+            const variables = srcFile.getVariableDeclarations().filter(v => registered_trait_names.includes(v.getName()));
+            const provided_methods = variables.reduce((acc, variable) => {
+                const trait_name = variable.getName();
+                const call_expr = variable.getChildrenOfKind(SyntaxKind.CallExpression)[0]!;
+                const object_literal = call_expr.getChildrenOfKind(SyntaxKind.ObjectLiteralExpression)[0]!;
+                const formatted_methods = object_literal
+                    .getProperties()
+                    .filter(p => p.isKind(SyntaxKind.MethodDeclaration))
+                    .reduce((acc, prop) => {
+                        acc[prop.getName()] = prop.getText();
+                        return acc;
+                    }, {} as Record<string, string>);
+
+                acc[trait_name] = formatted_methods;
+                return acc;
+
+            }, {} as Record<string, any>);
+
+            Object.entries(provided_methods).forEach(([key, value]) => {
+                meta.setProvided(filePath, key, value);
+            });
+            // console.log('FORMATTED: ', methods);
+
+            // meta.setProvided(filePath, tra);
+
+        });
+
+    }
+
+    console.log('extract metadata', (performance.now() - start) / 1000);
+
+    start = performance.now();
+    const json = JSON.stringify(Object.fromEntries(meta.entries()));
+    await Bun.file(`${root}/.trait-metadata.json`).write(json);
+    console.log('trait-metadata.json write time: ', (performance.now() - start) / 1000);
+    return json;
+}
+
+
+/**
+ * **This method must be called inside a trait function body**
+ * 
+ * @returns an array of the expected trait keys
+ */
+export function GetTraitKeys(trait_name: string): string[] {
+    return meta.get(trait_name)!.methods.names;
+}
