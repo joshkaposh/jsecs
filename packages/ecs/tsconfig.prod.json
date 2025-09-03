@@ -1,0 +1,15 @@
+{
+    "extends": "@repo/typescript-config/prod.json",
+    "compilerOptions": {
+        "rootDir": "src",
+        "skipLibCheck": true
+    },
+    "include": [
+        "src",
+        "macros"
+    ],
+    "exclude": [
+        "node_nodules",
+        "build"
+    ]
+}

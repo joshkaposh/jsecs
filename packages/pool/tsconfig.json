@@ -1,6 +1,6 @@
 {
-    "extends": "@repo/typscript-config/base.json",
-    "compilerOptions": {
-        "rootDir": "src",
-    },
+    "extends": "@repo/typescript-config/base.json",
+    "exclude": [
+        "tests"
+    ]
 }

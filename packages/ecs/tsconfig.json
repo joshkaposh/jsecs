@@ -1,9 +1,14 @@
 {
     "extends": "@repo/typescript-config/jsecs.json",
     "compilerOptions": {
-        "rootDir": "src"
+        "rootDir": "."
     },
     "include": [
-        "src"
+        "src",
+        "macros"
+    ],
+    "exclude": [
+        "node_nodules",
+        "build"
     ]
 }

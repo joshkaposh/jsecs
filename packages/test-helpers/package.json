@@ -7,9 +7,10 @@
   "keywords": [],
   "author": "",
   "scripts": {
-    "build": "bun build ./src/index.ts --outdir ./build --target bun"
+    "build": "bun build ./src/index.ts --outdir ./build --target bun  --format esm"
   },
   "devDependencies": {
+    "@types/bun": "^1.2.21",
     "@repo/typescript-config": "workspace:*",
     "typescript": "latest"
   },

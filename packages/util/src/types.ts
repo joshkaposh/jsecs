@@ -9,6 +9,34 @@ export type Some<T> = NonNullable<T>;
 
 export type AnyRecord = Record<PropertyKey, any>;
 
+
+/**
+ * Exludes any type that is not inferable as `number` (e.g number or \`${number}\`)
+ * 
+ * @example
+ * //  0 | 1 | 5
+ * type Solution = PickNumber<object | string | `${number}-${string}` | 0 | 1 | `${5}`>
+ */
+export type PickNumber<T> =
+    T extends number ? T :
+    T extends `${infer Inner extends number}` ? Inner :
+    never;
+
+export type Index<T> = T extends Array<any> ? number : keyof T;
+
+export type IndexNumber<T> = T extends Array<any> ? number : PickNumber<keyof T>;
+
+export type NumberRecord<T> = {
+    [K in keyof T as PickNumber<K>]: T[K];
+};
+
+/**
+ * Converts an object or record into an array
+ */
+export type ToArray<T, K extends keyof T = keyof T> = Array<T[K]>;
+
+
+
 export type Instance<T> = T extends new (...args: any[]) => any ? InstanceType<T> : T;
 
 export type Default<T = any> = T extends Primitive | { new(): any } | (() => any) ? T : never;

@@ -1,13 +1,13 @@
 {
   "name": "@repo/util",
   "version": "0.1.0",
+  "author": "",
+  "type": "module",
   "description": "",
   "keywords": [],
-  "author": "",
   "license": "MIT",
-  "type": "module",
   "scripts": {
-    "build": "bun build ./src/index.ts --outdir ./build"
+    "build": "bun build ./src/index.ts --outdir ./build  --format esm"
   },
   "exports": {
     ".": "./src/index.ts",
@@ -22,10 +22,9 @@
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
-    "@types/uuid": "^10.0.0",
-    "typescript": "latest"
+    "@types/uuid": "^10.0.0"
   },
-  "dependencies": {
-    "uuid": "^8.3.2"
+  "peerDependencies": {
+    "typescript": "latest"
   }
 }

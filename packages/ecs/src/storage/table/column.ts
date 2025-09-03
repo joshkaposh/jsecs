@@ -1,4 +1,4 @@
-import { type ComponentTicks, Tick } from "../../component";
+import { checkTicks, type ComponentTicks, type Tick } from "../../component";
 import { swap, swapPop } from "@repo/util";
 import { debugAssert } from '@repo/util/assert';
 import { TableRow } from "./index";
@@ -186,8 +186,7 @@ export class Column {
         const ticks = this.ticks;
         for (let i = 0; i < len; i++) {
             const tick = ticks[i]!;
-            tick.added = Tick.checkAssign(tick.added, change_tick);
-            tick.changed = Tick.checkAssign(tick.changed, change_tick);
+            checkTicks(tick, change_tick);
         }
     }
 

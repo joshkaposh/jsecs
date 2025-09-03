@@ -5,7 +5,21 @@ import { SparseSet } from "./storage";
 import type { ComponentIdFor } from './component';
 import type { World } from './world';
 
+// @ts-ignore
+type Events<T> = any;
+
 export type ComponentHook = unknown;
+
+export const ADD = 0;
+export const INSERT = 1;
+export const REPLACE = 2;
+export const REMOVE = 3;
+export const DESPAWN = 4;
+export const Add = {};
+export const Insert = {};
+export const Replace = {};
+export const Remove = {};
+export const Despawn = {};
 
 export class ComponentHooks {
     private on_add: ComponentHook | undefined;
@@ -218,22 +232,6 @@ export class ComponentHooks {
     }
 }
 
-export const ADD = 0;
-export const INSERT = 1;
-export const REPLACE = 2;
-export const REMOVE = 3;
-export const DESPAWN = 4;
-
-export const Add = {};
-
-export const Insert = {};
-
-export const Replace = {};
-
-export const Remove = {};
-
-export const Despawn = {};
-
 export class RemovedComponentEntity {
     readonly entity: Entity;
     constructor(entity: Entity) {
@@ -241,6 +239,7 @@ export class RemovedComponentEntity {
     }
 }
 
+// @ts-ignore
 class EventCursor<T> {
     static default<T>() {
         return new EventCursor<T>();
@@ -248,7 +247,10 @@ class EventCursor<T> {
 }
 
 export class RemovedComponentReader<T extends Component> {
+
+    // @ts-ignore
     #reader: EventCursor<RemovedComponentEntity>;
+    // @ts-ignore
     #ty: T;
     constructor(type: T, reader = EventCursor.default<RemovedComponentEntity>()) {
         this.#reader = reader;
@@ -286,11 +288,13 @@ export class RemovedComponentEvents {
 
     write(component_id: ComponentId, entity: Entity) {
         this.#event_sets
+            // @ts-expect-error
             .getOrSetWith(component_id, () => Events.default)
             .write(new RemovedComponentEntity(entity));
     }
 }
 
+// @ts-ignore
 type Local<T> = any;
 
 export class RemovedComponents<T extends Component> {
@@ -309,11 +313,11 @@ export class RemovedComponents<T extends Component> {
     }
 
     events() {
-        return this.#events_sets.get(this.#component_id.get());
+        return this.#events_sets.get(this.#component_id.v);
     }
 
     readerWithEvents() {
-        const events = this.#events_sets.get(this.#component_id.get());
+        const events = this.#events_sets.get(this.#component_id.v);
         if (events) {
             return [this.#reader, events] as const;
         }
@@ -357,6 +361,8 @@ export class RemovedComponents<T extends Component> {
     }
 }
 
+// @ts-ignore
+type EventId<T> = any;
 function mapIdEvents([entity, id]: [RemovedComponentEntity, EventId<RemovedComponentEntity>]) {
     return [entity.entity, id];
 }

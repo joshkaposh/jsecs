@@ -1,14 +1,15 @@
 import type { AnyRecord, Immut as MakeImmut, Instance, NoReadonly, ConcreteClass } from "@repo/util";
-import { Tick } from "./component/tick";
+import { isNewerThan, type ComponentTicks, type Tick, type Ticks } from "./component/tick";
 
-export interface Ticks {
-    readonly added: Tick;
-    readonly changed: Tick;
-    last_run: Tick;
-    this_run: Tick;
+export function Ticks(added: Tick, changed: Tick, last_run: Tick, this_run: Tick): Ticks {
+    return {
+        added,
+        changed,
+        last_run,
+        this_run
+    }
 }
-
-export function Ticks(cell: { added: Tick, changed: Tick }, last_run: Tick, this_run: Tick): Ticks {
+Ticks.fromCells = function (cell: ComponentTicks, last_run: Tick, this_run: Tick) {
     return {
         get added() {
             return cell.added;
@@ -21,28 +22,26 @@ export function Ticks(cell: { added: Tick, changed: Tick }, last_run: Tick, this
     }
 }
 
-// function Ptr<T extends AnyRecord>(target: T): T {
-//     const fns = new Map();
-//     return new Proxy(target, {
-//         get(target, p) {
-//             const value = target[p];
-//             if (value instanceof Function) {
-//                 const cache = fns.get(p);
-//                 if (cache) {
-//                     return cache;
-//                 }
-//                 const bound = value.bind(target);
-//                 fns.set(p, bound);
-//                 return bound;
-//             }
-//             return value;
-
-//         },
-//     });
-// }
-
 export type TicksMut = NoReadonly<Ticks>;
-export function TicksMut(cell: { added: Tick, changed: Tick }, last_run: Tick, this_run: Tick): TicksMut {
+export function TicksMut(added: Tick, changed: Tick, last_run: Tick, this_run: Tick): TicksMut {
+    return {
+        get added() {
+            return added;
+        },
+        set added(added) {
+            added = added;
+        },
+        get changed() {
+            return changed;
+        },
+        set changed(changed) {
+            changed = changed;
+        },
+        last_run,
+        this_run
+    }
+}
+TicksMut.fromCells = function (cell: { added: Tick; changed: Tick }, last_run: Tick, this_run: Tick) {
     return {
         get added() {
             return cell.added;
@@ -61,13 +60,12 @@ export function TicksMut(cell: { added: Tick, changed: Tick }, last_run: Tick, t
     }
 }
 export type DetectChanges<T = AnyRecord> = {
-    is_added(this: Instance<T> & DetectChanges<T>): boolean;
+    isAdded(this: DetectChanges<T>): boolean;
+    isChanged(this: DetectChanges<T>): boolean;
 
-    is_changed(this: Instance<T> & DetectChanges<T>): boolean;
+    get lastChanged(): Tick;
 
-    last_changed(this: Instance<T> & DetectChanges<T>): Tick;
-
-    added(this: Instance<T> & DetectChanges<T>): Tick;
+    get added(): Tick;
 };
 
 export type DetectChangesMut<T = AnyRecord> = DetectChanges<T> & {
@@ -77,7 +75,7 @@ export type DetectChangesMut<T = AnyRecord> = DetectChanges<T> & {
      * 
      * Mutably accessing this object will automatically flag this value as having been changed.
      */
-    set_changed(this: Instance<T> & DetectChangesMut<T>): void;
+    setChanged(this: DetectChangesMut<T>): void;
 
     /**
      * Flags this value as having been added.
@@ -88,7 +86,7 @@ export type DetectChangesMut<T = AnyRecord> = DetectChanges<T> & {
      * 
      * **Note**: This operation cannot be undone.
      */
-    set_added(this: Instance<T> & DetectChangesMut<T>): void;
+    setAdded(this: DetectChangesMut<T>): void;
 
     /**
      * Manually sets the change tick recording the time when this data was last mutated.
@@ -98,7 +96,7 @@ export type DetectChangesMut<T = AnyRecord> = DetectChanges<T> & {
      * If you merely want to flag this data as changed, use [`set_changed`] instead.
      * If you want to avoid triggering change detection, use [`bypassChangeDetection`] instead.
      */
-    set_last_changed(this: Instance<T> & DetectChangesMut<T>, last_changed: Tick): void;
+    setLastChanged(this: DetectChangesMut<T>, last_changed: Tick): void;
 
     /**
      * Manually sets the `added` tick recording the time when this data was last added.
@@ -106,7 +104,7 @@ export type DetectChangesMut<T = AnyRecord> = DetectChanges<T> & {
      * # Warning
      * The caveats of [`set_last_changed`] apply. This modifies both the added and changed ticks together.
      */
-    set_last_added(this: Instance<T> & DetectChangesMut<T>, last_added: Tick): void;
+    setLastAdded(this: DetectChangesMut<T>, last_added: Tick): void;
 
     /**
      * 
@@ -117,7 +115,7 @@ export type DetectChangesMut<T = AnyRecord> = DetectChanges<T> & {
      * However, it can be an essential escape hatch when, for example,
      * you are trying to synchronize representations using change detection and need to avoid infinite recursion.
      */
-    bypassChangeDetection(this: Instance<T> & DetectChangesMut<T>): Instance<T>;
+    bypassChangeDetection(this: DetectChangesMut<T>): Instance<T>;
 
     // setIfNeq(this: Instance<T> & DetectChangesMut<T>,value:  Instance<T>): boolean;
 }
@@ -138,27 +136,30 @@ export function DetectChanges<T extends ConcreteClass<DetectChangesInstance>>(co
             super(...args);
         }
 
-        read(this: InstanceType<T> & DetectChanges<T>) {
-            return this.value;
+
+        get added(): Tick {
+            return this.ticks.added;
         }
 
-        is_added(this: InstanceType<T> & DetectChanges<T>): boolean {
-            const { added, last_run, this_run } = this.ticks;
-            return Tick.isNewerThan(added, last_run, this_run);
-        }
-
-        is_changed(this: InstanceType<T> & DetectChanges<T>): boolean {
-            const { changed, last_run, this_run } = this.ticks;
-            return Tick.isNewerThan(changed, last_run, this_run);
-        }
-
-        last_changed(this: InstanceType<T> & DetectChanges<T>): Tick {
+        get lastChanged(): Tick {
             return this.ticks.changed;
         }
 
-        added(this: InstanceType<T> & DetectChanges<T>): Tick {
-            return this.ticks.added;
+        get read() {
+            return this.value;
         }
+
+        isAdded(this: InstanceType<T> & DetectChanges<T>): boolean {
+            const t = this.ticks;
+            return isNewerThan(t.added, t.last_run, t.this_run);
+        }
+
+        isChanged(this: InstanceType<T> & DetectChanges<T>): boolean {
+            const t = this.ticks;
+            return isNewerThan(t.changed, t.last_run, t.this_run);
+        }
+
+
     }
 }
 
@@ -168,54 +169,55 @@ export function DetectChangesMut<T extends ConcreteClass<DetectChangesMutInstanc
             super(...args);
         }
 
-        write(this: InstanceType<T> & DetectChangesMut<T>) {
-            this.set_changed();
+        get write() {
+            // this.setChanged();
             return this.value;
         }
 
-        read(this: InstanceType<T> & DetectChanges<T>) {
+        get read() {
             return this.value;
         }
 
-        is_added(this: InstanceType<T> & DetectChanges<T>): boolean {
-            const { added, last_run, this_run } = this.ticks;
-            return Tick.isNewerThan(added, last_run, this_run);
-        }
-
-        is_changed(this: InstanceType<T> & DetectChanges<T>): boolean {
-            const { changed, last_run, this_run } = this.ticks;
-            return Tick.isNewerThan(changed, last_run, this_run);
-        }
-
-        last_changed(this: InstanceType<T> & DetectChanges<T>): Tick {
-            return this.ticks.changed;
-        }
-
-        added(this: InstanceType<T> & DetectChanges<T>): Tick {
+        get added(): Tick {
             return this.ticks.added;
         }
 
-        set_changed(this: InstanceType<T> & DetectChanges<T> & { set_changed(this: Instance<T> & DetectChanges<T> & any): void; set_added(this: Instance<T> & DetectChanges<T> & any): void; set_last_changed(this: Instance<T> & DetectChanges<T> & any, last_changed: Tick): void; set_last_added(this: Instance<T> & DetectChanges<T> & any, last_changed: Tick): void; bypassChangeDetection(this: Instance<T> & DetectChanges<T> & any): Instance<T>; }): void {
+        get lastChanged(): Tick {
+            return this.ticks.changed;
+        }
+
+        isAdded(this: InstanceType<T> & DetectChanges<T>): boolean {
+            const t = this.ticks;
+            return isNewerThan(t.added, t.last_run, t.this_run);
+        }
+
+        isChanged(): boolean {
+            const t = this.ticks;
+            return isNewerThan(t.changed, t.last_run, t.this_run);
+
+        }
+
+        setChanged(): void {
             this.ticks.changed = this.ticks.this_run;
         }
 
-        set_added(this: InstanceType<T> & DetectChangesMut<T>): void {
+        setAdded(): void {
             const t = this.ticks;
             t.changed = t.this_run;
             t.added = t.this_run;
         }
 
-        set_last_changed(this: InstanceType<T> & DetectChangesMut<T>, last_changed: Tick): void {
+        setLastChanged(last_changed: Tick): void {
             this.ticks.changed = last_changed;
         }
 
-        set_last_added(this: InstanceType<T> & DetectChangesMut<T>, last_added: Tick): void {
+        setLastAdded(last_added: Tick): void {
             const t = this.ticks;
             t.added = last_added;
             t.changed = last_added;
         }
 
-        bypassChangeDetection(this: InstanceType<T> & DetectChangesMut<T>): InstanceType<T> {
+        bypassChangeDetection(this: Instance<T>): InstanceType<T> {
             return this.value as InstanceType<T>;
         }
     }
@@ -377,13 +379,13 @@ export class MutUntyped implements DetectChangesMut {
     }
 
     intoInner() {
-        this.set_changed();
+        this.setChanged();
         return this.#value;
     }
 
     hasChangedSince(tick: Tick) {
         const t = this.#ticks;
-        return Tick.isNewerThan(t.changed, tick, t.this_run);
+        return isNewerThan(t.changed, tick, t.this_run);
     }
 
     asMut() {
@@ -402,41 +404,41 @@ export class MutUntyped implements DetectChangesMut {
         return new Mut(this.#value as Instance<T>, this.#ticks);
     }
 
-    is_added(): boolean {
+    isAdded(): boolean {
         const t = this.#ticks;
-        return Tick.isNewerThan(t.added, t.last_run, t.this_run);
+        return isNewerThan(t.added, t.last_run, t.this_run);
     }
 
-    is_changed(): boolean {
+    isChanged(): boolean {
         const t = this.#ticks;
-        return Tick.isNewerThan(t.changed, t.last_run, t.this_run);
+        return isNewerThan(t.changed, t.last_run, t.this_run);
     }
 
-    last_changed(): Tick {
+    get lastChanged(): Tick {
         return this.#ticks.changed;
     }
 
-    added(): Tick {
+    get added(): Tick {
         return this.#ticks.added;
     }
 
-    set_changed(): void {
+    setChanged(): void {
         const t = this.#ticks;
         t.changed = t.this_run;
     }
 
-    set_added(): void {
+    setAdded(): void {
         const t = this.#ticks;
         t.changed = t.this_run;
         t.added = t.this_run;
     }
 
-    set_last_changed(): void {
+    setLastChanged(): void {
         const t = this.#ticks;
         t.changed = t.this_run;
     }
 
-    set_last_added(last_added: Tick): void {
+    setLastAdded(last_added: Tick): void {
         const t = this.#ticks;
         t.changed = last_added;
         t.added = last_added;

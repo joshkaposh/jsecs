@@ -8,8 +8,7 @@ export * from './array';
 export * from './set';
 export * from './map';
 export * from './class';
-// export * from './descriptor';
-// export * from './mixin';
+export * from './descriptor';
 
 export type unit = typeof unit;
 export const unit = Symbol.for('unit');

@@ -1,4 +1,5 @@
 import { clamp } from "./math";
+import type { Index } from "./types";
 
 export type Compare<T = unknown> = (a: T, b: T) => -1 | 0 | 1;
 
@@ -75,24 +76,15 @@ export function oob(index: number, length: number) {
     return index >= 0 && index < length;
 }
 
-//! used by typed-array, declared here to avoid circular dependency.
-
-type TypedArray<T extends ArrayBufferLike = ArrayBufferLike> =
-    Uint8Array<T>
-    | Uint16Array<T>
-    | Uint32Array<T>
-    | Int8Array<T>
-    | Int16Array<T>
-    | Int32Array<T>
-    // | Float16Array
-    | Float32Array<T>
-    | Float64Array<T>;
-
-export function swap(array: TypedArray | any[], a: number, b: number): void;
-export function swap(array: TypedArray | any[] | Record<PropertyKey, any>, a: PropertyKey, b: PropertyKey) {
-    const temp = array[b as number];
-    array[b as number] = array[a as number];
-    array[a as number] = temp;
+/**
+ * Swaps `a` with `b`.
+ * 
+ * This works on any Record or Array type.
+ */
+export function swap<T extends Record<PropertyKey, any> | any[], I extends Index<T>>(object: T, a: I, b: I) {
+    const temp = object[b];
+    object[b] = object[a];
+    object[a] = temp;
 }
 
 /**

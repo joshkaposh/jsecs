@@ -1,23 +1,25 @@
 {
   "name": "jsecs",
-  "private": true,
   "scripts": {
+    "install": "bun install",
     "test": "bun test",
     "test:watch": "bun test --watch",
     "build": "bun run --filter \"*\" build"
   },
   "devDependencies": {
     "prettier": "^3.5.0",
-    "turbo": "^2.5.5",
     "typescript": "latest"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=18",
+    "bun": ">=1.2.20"
   },
-  "packageManager": "npm@11.4.2",
   "workspaces": [
-    "apps/*",
-    "packages/*",
-    "performance/*"
-  ]
+    "packages/*"
+  ],
+  "catalog": {
+    "prettier": "^3.5.0",
+    "typescript": "latest",
+    "@types/bun": "^1.2.20"
+  }
 }

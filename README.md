@@ -1,9 +1,9 @@
 # Getting Started
 
-First, install dependencies:
+First, install the engine:
 
 ```bash
-bun install
+bun add jsecs
 ```
 
 ## Available Commands
@@ -11,6 +11,29 @@ bun install
 - `bun build`: Runs the build command for each package
 - `bun test`: Runs tests in each package using Bun
 - `bun test:watch`: Runs tests in watch mode
+
+### Creating your first App
+
+The simplest way to create a new App is the following:
+
+```typescript
+import {App} from "jsecs";
+App.new().run();
+```
+
+this largely does nothing. (Jsecs is designed to be modular.) To include a game loop, renderer, and other useful things, add the [`DefaultPlugins`] `Plugin`.
+
+```typescript
+import {App, DefaultPlugins} from "jsecs";
+App
+    .new()
+    .addPlugins(DefaultPlugins)
+    .run();
+```
+
+> [!Tip]
+> `DefaultPlugins` reads the process.env, so you can customize which plugins are included by default
+
 
 ## Useful Links
 

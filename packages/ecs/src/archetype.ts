@@ -1,7 +1,7 @@
 import { iter, Iterator } from "joshkaposh-iterator";
 import { check, u32, type Option } from 'joshkaposh-option'
 import { entry, swapPop, splitAt } from "@repo/util";
-import { Components } from "./component/info";
+import { Components } from "./component/components";
 import { StorageType } from "./component/storage-type";
 import type { Entity, EntityLocation } from "./entity/entity";
 import { type TableRow, TableId, SparseSet } from './storage';
@@ -97,15 +97,15 @@ export class Edges {
         this.#take_bundle = take_bundle;
     }
 
-    get_archetype_after_bundle_insert(bundle_id: BundleId): Option<ArchetypeId> {
-        return this.get_archetype_after_bundle_insert_internal(bundle_id)?.archetype_id;
+    getArchetypeAfterBundleInsert(bundle_id: BundleId): Option<ArchetypeId> {
+        return this.__getArchetypeAfterBundleInsertInternal(bundle_id)?.archetype_id;
     }
 
-    get_archetype_after_bundle_insert_internal(bundle_id: BundleId): Option<ArchetypeAfterBundleInsert> {
+    __getArchetypeAfterBundleInsertInternal(bundle_id: BundleId): Option<ArchetypeAfterBundleInsert> {
         return this.#insert_bundle[bundle_id]
     }
 
-    cache_archetype_after_bundle_insert(bundle_id: BundleId, archetype_id: ArchetypeId, bundle_status: ComponentStatus[], required_components: any[], added: ComponentId[], existing: ComponentId[]) {
+    cacheArchetypeAfterBundleInsert(bundle_id: BundleId, archetype_id: ArchetypeId, bundle_status: ComponentStatus[], required_components: any[], added: ComponentId[], existing: ComponentId[]) {
         this.#insert_bundle[bundle_id] = new ArchetypeAfterBundleInsert(
             archetype_id,
             bundle_status,
@@ -115,19 +115,19 @@ export class Edges {
         );
     }
 
-    get_archetype_after_bundle_remove(bundle_id: BundleId): Option<ArchetypeId> {
+    __getArchetypeAfterBundleRemoveInternal(bundle_id: BundleId): Option<ArchetypeId> {
         return this.#remove_bundle[bundle_id]
     }
 
-    cache_archetype_after_bundle_remove(bundle_id: BundleId, archetype_id: Option<ArchetypeId>) {
+    cacheArchetypeAfterBundleRemove(bundle_id: BundleId, archetype_id: Option<ArchetypeId>) {
         this.#remove_bundle[bundle_id] = archetype_id;
     }
 
-    get_archetype_after_bundle_take(bundle_id: BundleId): Option<ArchetypeId> {
+    __getArchetypeAfterBundleTakeInternal(bundle_id: BundleId): Option<ArchetypeId> {
         return this.#take_bundle[bundle_id];
     }
 
-    cache_archetype_after_bundle_take(bundle_id: BundleId, archetype_id: Option<ArchetypeId>) {
+    cacheArchetypeAfterBundleTake(bundle_id: BundleId, archetype_id: Option<ArchetypeId>) {
         this.#take_bundle[bundle_id] = archetype_id;
     }
 }
@@ -258,7 +258,7 @@ export class Archetype {
         return this.#id;
     }
 
-    get tableId(): TableId {
+    get table_id(): TableId {
         return this.#table_id;
     }
 
@@ -417,7 +417,7 @@ export class Archetype {
         }
     }
 
-    __reserve(additional: number) {
+    __reserve(_additional: number) {
         // reserve(this.#entities, additional)
     }
 
@@ -551,7 +551,7 @@ export class Archetypes {
     }
 
 
-    __get2Mut(a: ArchetypeId, b: ArchetypeId): [Archetype, Archetype] {
+    __get2(a: ArchetypeId, b: ArchetypeId): [Archetype, Archetype] {
         if (a > b) {
             const [b_slice, a_slice] = splitAt(this.__archetypes, a)!;
             return [a_slice[0]!, b_slice[b]!];

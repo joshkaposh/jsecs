@@ -1,16 +1,15 @@
-import type { Components } from "./info";
-import type { Component, ComponentId } from "./define";
-import type { Tick } from "./tick";
-import type { Entity } from "../entity";
 import { entry, splitLast } from "@repo/util";
+import type { Components } from "./components";
+import type { Component, ComponentId } from "./define";
+import type { Entity } from "../entity/entity";
 import { BundleInfo } from "../bundle/info";
 import type { SparseSets, Table, TableRow } from "../storage";
-
 import { ErrorExt } from "joshkaposh-option";
 import type { ComponentsRegistrator } from ".";
 
 type RequiredCtor = (table: Table, sparse_sets: SparseSets, change_tick: Tick, table_row: TableRow, entity: Entity) => void;
 
+type Tick = number;
 
 export class RequiredComponentConstructor {
     ctor: RequiredCtor;

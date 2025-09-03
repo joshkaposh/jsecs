@@ -3,10 +3,9 @@ import { ComponentsRegistrator, type Tick } from "../component";
 import { EntityLocation, index, type Entity } from "../entity";
 import { ADD, INSERT } from "../lifecycle";
 import type { Table } from "../storage";
+import type { World } from "../world";
 import { InsertMode, type BundleId, type BundleInfo } from "./info";
 import type { Bundle, DynamicBundle } from "./types";
-
-type World = unknown;
 
 export class BundleSpawner {
     #bundle_info: BundleInfo;
@@ -39,13 +38,14 @@ export class BundleSpawner {
             ArchetypeId.EMPTY
         );
 
-        const archetype = world.archetypes.get(new_archetype_id);
-        const table = world.storages.tables.get(archetype.table_id);
+        const archetype = world.archetypes.get(new_archetype_id)!;
+        const table = world.storages.tables.get(archetype.table_id)!;
         const spawner = new BundleSpawner(bundle_info, table, archetype, change_tick, world);
         if (is_new_created) {
             spawner
                 .#world
                 .intoDeferred()
+                // @ts-expect-error
                 .trigger(new ArchetypeCreated(new_archetype_id));
         }
     }
@@ -76,16 +76,19 @@ export class BundleSpawner {
         );
 
         const idx = index(entity);
-        entities.set(idx, loc);
+        entities.__set(idx, loc);
+        // @ts-expect-error
         entities.markSpawnDespawn(idx, this.change_tick);
 
         const deferred_world = this.#world.intoDeferred();
 
         const contributed_components = bundle_info.contributed_components;
 
+        // @ts-expect-error
         deferred_world.triggerOnAdd(archetype, entity, contributed_components);
 
         if (archetype.hasAddObserver()) {
+            // @ts-expect-error
             deferred_world.triggerObservers(
                 ADD,
                 entity,
@@ -93,9 +96,11 @@ export class BundleSpawner {
             );
 
         }
+        // @ts-expect-error
         deferred_world.triggerOnInsert(archetype, entity, contributed_components);
 
         if (archetype.hasInsertObserver()) {
+            // @ts-expect-error
             deferred_world.triggerObservers(
                 INSERT,
                 entity,

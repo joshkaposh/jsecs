@@ -1,10 +1,11 @@
+import { type UUID } from "@repo/util";
 import { Archetypes } from "../archetype";
-import { Component, Components, Tick, type ComponentId } from "../component";
+import { Component, ComponentDescriptor, ComponentIds, Components, ComponentsRegistrator, type Tick, type ComponentId, type Resource, isNewerThan } from "../component";
 import { Entities } from "../entity";
 import { Storages } from "../storage";
 import { WorldId } from "./identifier";
+import { DeferredWorld } from "./deferred-world";
 
-type ComponentIds = any;
 type Bundles = any;
 type Observers = any;
 type RemovedComponents = any;
@@ -20,8 +21,8 @@ export class World {
     readonly bundles!: Bundles;
     readonly observers!: Observers;
     readonly removed_components!: RemovedComponents;
-    readonly changeTick!: Tick;
-    readonly lastCheckTick!: Tick;
+    changeTick!: Tick;
+    lastCheckTick!: Tick;
     readonly command_queue!: RawCommandQueue;
 
     private constructor(
@@ -53,7 +54,7 @@ export class World {
         this.command_queue = command_queue;
     }
 
-    static default() {
+    static new() {
         const id = WorldId();
         if (id == null) {
             throw new Error('More `World`s have been created than is supported');
@@ -62,7 +63,7 @@ export class World {
             id,
             new Entities(),
             new Components(),
-            undefined,
+            new ComponentIds(),
             new Archetypes(),
             new Storages(),
             null,
@@ -74,6 +75,10 @@ export class World {
         );
         world.__bootstrap();
         return world;
+    }
+
+    intoDeferred() {
+        return new DeferredWorld(this);
     }
 
     addObserver() { }
@@ -96,13 +101,26 @@ export class World {
 
     commands() { }
 
-    componentId() { }
+    componentsRegistrator() {
+        return new ComponentsRegistrator(this.components, this.component_ids);
+    }
 
-    has() { }
+    componentId(component: Component) {
+        return this.components.componentId(component);
+    }
 
-    hasResource() { }
+    hasResource(resource: Resource) {
+        const component_id = this.getResourceId(resource.type_id);
+        if (component_id == null) {
+            return false;
+        }
 
-    hasResourceById() { }
+        return Boolean(this.storages.resources.get(component_id)?.isPresent);
+    }
+
+    hasResourceById(component_id: ComponentId) {
+        return Boolean(this.storages.resources.get(component_id)?.isPresent);
+    }
 
     despawn() { }
 
@@ -132,6 +150,10 @@ export class World {
 
     getResource() { }
 
+    getResourceId(type_id: UUID) {
+        return this.components.getResourceId(type_id);
+    }
+
     getResourceById() { }
 
     getResourceMut() { }
@@ -155,16 +177,34 @@ export class World {
 
     inspectEntity() { }
 
-    isResourceAdded() { }
-    isResourceAddedById() { }
-    isResourceChanged() { }
-    isResourceChangedById() { }
+    isResourceAdded(resource: Resource) {
+        const component_id = this.getResourceId(resource.type_id);
+        return component_id == null ? false : this.isResourceAddedById(component_id);
+    }
+
+    isResourceAddedById(component_id: ComponentId) {
+        const ticks = this.storages.resources.get(component_id)?.getTicks();
+        return ticks ? isNewerThan(ticks.added, this.lastChangeTick(), this.readChangeTick()) : false;
+    }
+
+    isResourceChanged(resource: Resource) {
+        const component_id = this.getResourceId(resource.type_id);
+        return component_id == null ? false : this.isResourceChangedById(component_id);
+
+    }
+    isResourceChangedById(component_id: ComponentId) {
+        const ticks = this.storages.resources.get(component_id)?.getTicks();
+        return ticks ? isNewerThan(ticks.added, this.lastChangeTick(), this.readChangeTick()) : false;
+
+    }
 
     iterEntities() { }
 
     iterResources() { }
 
-    lastChangeTick() { }
+    lastChangeTick() {
+        return this.lastCheckTick;
+    }
 
     lastChangeTickScope() { }
 
@@ -175,10 +215,13 @@ export class World {
     query() { }
     queryFiltered() { }
 
-    readChangeTick() { }
+    readChangeTick() {
+        return this.changeTick;
+    }
+
     registerBundle() { }
     registerComponent(component: Component): ComponentId {
-        return 0;
+        return this.componentsRegistrator().__registerComponent(component);
     }
     registerComponentHooks() { }
     registerComponentHooksById() { }
@@ -187,8 +230,12 @@ export class World {
     registerDynamicBundle() { }
     registerRequiredComponents() { }
     registerRequiredComponentsWith() { }
-    registerResource() { }
-    registerResourceWithDescriptor() { }
+    registerResource(resource: Resource) {
+        return this.componentsRegistrator().__registerResource(resource);
+    }
+    registerResourceWithDescriptor(descriptor: ComponentDescriptor) {
+        return this.componentsRegistrator().__registerWithDescriptor(descriptor);
+    }
     registerSystem() { }
     registerSystemCached() { }
     removeResource() { }

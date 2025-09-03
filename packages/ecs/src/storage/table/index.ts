@@ -3,7 +3,7 @@ import { type Option, u32 } from 'joshkaposh-option'
 import { capacity, swap, swapPop, splitAt, entry } from "@repo/util";
 import { debugAssert } from "@repo/util/assert";
 import { Entity } from "../../entity";
-import { ComponentInfo, Components, Tick } from "../../component";
+import { ComponentInfo, Components, type Tick } from "../../component";
 import { SparseSet } from "../sparse-set";
 import { Column } from "./column";
 

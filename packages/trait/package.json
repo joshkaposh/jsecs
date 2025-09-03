@@ -1,0 +1,16 @@
+{
+  "name": "trait",
+  "module": "src/index.ts",
+  "type": "module",
+  "bin": "src/index.bin.ts",
+  "scripts": {
+    "dev": "bun run ./dev/index.ts",
+    "dev:watch": "bun --watch ./dev/index.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "latest"
+  }
+}

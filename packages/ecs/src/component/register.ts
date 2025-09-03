@@ -1,41 +1,18 @@
 import { iter } from "joshkaposh-iterator";
 import { entry, type UUID } from "@repo/util";
 import { debugAssert } from "@repo/util/assert";
-import { type Component, type Resource } from './define';
-import { ComponentDescriptor, type Components } from './info';
-import { enforceNoRequiredComponentsRecursion, RequiredComponent, RequiredComponents } from "./required";
-import { ErrorExt } from "joshkaposh-option";
+import type { Component, Resource } from './define';
+import type { Components } from './components';
+import { ComponentDescriptor } from './descriptor';
+import { enforceNoRequiredComponentsRecursion, RequiredComponents } from "./required";
+import type { ComponentIds } from "./ids";
 
-type ResourceId = number;
 type ComponentId = number;
 
-class ComponentIds {
-    #next: number;
 
-    constructor(next: number) {
-        this.#next = next;
-    }
-
-    peek() {
-        return this.#next;
-    }
-
-    next() {
-        return this.#next += 1;
-    }
-
-    len() {
-        return this.peek();
-    }
-
-    is_empty() {
-        return this.len() === 0;
-    }
-}
-
-class RequiredComponentsRegistrator {
-    constructor(self: any, required_components: RequiredComponents) { }
-}
+// class RequiredComponentsRegistrator {
+//     constructor(self: any, required_components: RequiredComponents) { }
+// }
 
 /**
  * A `Components` wrapper that enables additional features, like registration.
@@ -161,8 +138,7 @@ export class ComponentsRegistrator {
 
     __registerComponentUnchecked(type: Component, id: ComponentId) {
 
-        // @ts-expect-error
-        this.#components.registerComponentInner(id, ComponentDescriptor.newComponent(type));
+        this.#components.__registerComponentInner(id, ComponentDescriptor.newComponent(type));
         const type_id = type.type_id;
 
         // @ts-expect-error
@@ -214,8 +190,7 @@ export class ComponentsRegistrator {
 
     __registerWithDescriptor(descriptor: ComponentDescriptor) {
         const id = this.#ids.next();
-        // @ts-expect-error
-        this.#components.registerComponentInner(id, descriptor);
+        this.#components.__registerComponentInner(id, descriptor);
         return id;
     }
 
@@ -317,8 +292,7 @@ export class ComponentsQueuedRegistrator {
     }
 
     queueRegisterComponentWithDescriptor(descriptor: ComponentDescriptor) {
-        // @ts-expect-error
-        return this.registerArbitraryDynamic(descriptor, (registrator, id, descriptor) => registrator.components.registerComponentInner(id, descriptor));
+        return this.registerArbitraryDynamic(descriptor, (registrator, id, descriptor) => registrator.components.__registerComponentInner(id, descriptor));
     }
 
     queueRegisterResource(resource: Resource) {
@@ -327,8 +301,7 @@ export class ComponentsQueuedRegistrator {
     }
 
     queueRegisterResourceWithDescriptor(descriptor: ComponentDescriptor) {
-        // @ts-expect-error
-        return this.registerArbitraryDynamic(descriptor, (registrator, id, descriptor) => registrator.components.registerComponentInner(id, descriptor));
+        return this.registerArbitraryDynamic(descriptor, (registrator, id, descriptor) => registrator.components.__registerComponentInner(id, descriptor));
     }
 
 

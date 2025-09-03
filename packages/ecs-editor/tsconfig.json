@@ -1,0 +1,22 @@
+{
+  "extends": "@repo/typescript-config/jsecs.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "DOM.AsyncIterable"
+    ],
+    "outDir": "./build"
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    "examples",
+    "scripts"
+  ]
+}

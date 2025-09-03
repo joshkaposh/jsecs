@@ -1,13 +1,13 @@
 {
     "extends": "@repo/typescript-config/jsecs.json",
     "compilerOptions": {
-        "outDir": "dist",
+        "outDir": "build",
         "rootDir": "src",
         "module": "esnext",
         "moduleResolution": "bundler"
     },
     "include": [
-        "src"
+        "src",
     ],
     "exclude": [
         "node_modules",

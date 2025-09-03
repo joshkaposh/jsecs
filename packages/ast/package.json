@@ -1,0 +1,21 @@
+{
+  "name": "@repo/ast",
+  "type": "module",
+  "scripts": {},
+  "exports": {
+    ".": "./index.ts",
+    "./stream": "./stream.ts",
+    "./server": "./websocket.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@repo/typescript-config": "workspace:*"
+  },
+  "dependencies": {
+    "@repo/macros": "workspace:*",
+    "ts-morph": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "catalog:"
+  }
+}

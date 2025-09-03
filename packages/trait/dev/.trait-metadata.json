@@ -1,1 +1,127 @@
-[{"name":"example-trait.trait","filePath":"C:\\Users\\rdjos\\OneDrive\\Documents\\dev\\libs\\jsecs\\packages\\trait\\dev\\example-trait.trait.ts","traits":{"ExampleTraitInterface":{"name":"ExampleTraitInterface","implementations":{},"methods":{"flags":[12,20,12,20,10,18],"names":["providedMethod","requiredMethod","providedGenericMethod","requiredGenericMethod","providedInstanceMethod","requiredinstanceMethod"],"provided":{}}},"SimpleTrait":{"name":"SimpleTrait","implementations":{},"methods":{"flags":[12,20],"names":["opt","req"],"provided":{}}},"SimpleGenericTrait":{"name":"SimpleGenericTrait","implementations":{},"methods":{"flags":[10,18],"names":["opt","req"],"provided":{}}}}}]
+[
+  {
+    "name": "example-trait.trait",
+    "filePath": "example-trait.trait.ts",
+    "traits": {
+      "SimpleTrait": {
+        "name": "SimpleTrait",
+        "methods": {
+          "names": [
+            "opt",
+            "req"
+          ],
+          "flags": [
+            10,
+            2
+          ],
+          "provided": {
+            "0": {
+              "structure": {
+                "name": "opt",
+                "parameters": [],
+                "returnType": "string",
+                "typeParameters": [],
+                "hasQuestionToken": true,
+                "docs": [],
+                "kind": 28
+              },
+              "code": "opt() {\r\n        this.opt()\r\n        this.req();\r\n        return '';\r\n    }"
+            }
+          }
+        }
+      },
+      "SimplePlus": {
+        "name": "SimplePlus",
+        "methods": {
+          "names": [
+            "opt",
+            "req",
+            "req_inst",
+            "opt_inst"
+          ],
+          "flags": [
+            10,
+            2,
+            3,
+            9
+          ],
+          "provided": {
+            "0": {
+              "structure": {
+                "name": "opt",
+                "parameters": [],
+                "returnType": "string",
+                "typeParameters": [],
+                "hasQuestionToken": true,
+                "docs": [],
+                "kind": 28
+              },
+              "code": "opt() {\r\n        console.log(outer_object_literal, outer_primitive);\r\n        return '';\r\n    }"
+            },
+            "3": {
+              "structure": {
+                "name": "opt_inst",
+                "parameters": [
+                  {
+                    "name": "this",
+                    "type": "this",
+                    "isReadonly": false,
+                    "decorators": [],
+                    "hasQuestionToken": false,
+                    "hasOverrideKeyword": false,
+                    "kind": 30,
+                    "isRestParameter": false
+                  }
+                ],
+                "returnType": "void",
+                "typeParameters": [],
+                "hasQuestionToken": true,
+                "docs": [],
+                "kind": 28
+              },
+              "code": "opt_inst() {\r\n\r\n    }"
+            }
+          }
+        }
+      },
+      "SimpleGenericTrait": {
+        "name": "SimpleGenericTrait",
+        "methods": {
+          "names": [
+            "opt",
+            "req"
+          ],
+          "flags": [
+            9,
+            3
+          ],
+          "provided": {
+            "0": {
+              "structure": {
+                "name": "opt",
+                "parameters": [
+                  {
+                    "name": "this",
+                    "type": "T",
+                    "isReadonly": false,
+                    "decorators": [],
+                    "hasQuestionToken": false,
+                    "hasOverrideKeyword": false,
+                    "kind": 30,
+                    "isRestParameter": false
+                  }
+                ],
+                "returnType": "void",
+                "typeParameters": [],
+                "hasQuestionToken": true,
+                "docs": [],
+                "kind": 28
+              },
+              "code": "opt() {\r\n        this.himom;\r\n        this.opt();\r\n        this.req();\r\n    }"
+            }
+          }
+        }
+      }
+    }
+  }
+]

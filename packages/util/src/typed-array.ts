@@ -11,7 +11,6 @@ export type TypedArray<T extends ArrayBufferLike = ArrayBufferLike> =
     | Float32Array<T>
     | Float64Array<T>;
 
-
 export function pop(array: TypedArray<ArrayBuffer>): number | undefined {
     if (array.length === 0) {
         return

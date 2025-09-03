@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basic Editor</title>
+    <script type="module" src="./frontend.ts"></script>
+</head>
+<body>
+    
+    <script defer>
+        document.body.addEventListener('ondragover', e => {
+            e.preventDefault();
+            console.log('dragging');
+            
+        });
+
+        document.body.addEventListener('ondrop', e => {
+            e.preventDefault();
+        });
+    </script>
+</body>
+</html>

@@ -7,10 +7,10 @@
   "author": "",
   "license": "MIT",
   "exports": {
-    ".": "./src/pool.ts"
+    ".": "./src/index.ts"
   },
   "scripts": {
-    "build": "bun build ./src/pool.ts --outdir ./build",
+    "build": "bun build ./src/index.ts --outdir ./build --target bun --minify --format esm",
     "test": "bun test",
     "test:watch": "bun test --watch"
   },

@@ -1,0 +1,24 @@
+{
+  "name": "@repo/performance",
+  "version": "0.1.0",
+  "type": "module",
+  "license": "MIT",
+  "description": "",
+  "keywords": [],
+  "author": "",
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir ./build --target bun --minify --format esm"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "typescript": "latest"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@repo/util": "workspace:*",
+    "mitata": "latest",
+    "@mitata/counters": "latest"
+  }
+}

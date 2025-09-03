@@ -5,8 +5,7 @@ import type { BundleId, BundleInfo, InsertMode } from "./info";
 import type { Bundle, DynamicBundle } from "./types";
 import type { Table } from "../storage";
 import type { Entity, EntityLocation } from "../entity";
-
-type World = unknown;
+import type { World } from "../world";
 
 export class BundleInserter {
     #archetype_after_insert: any;
@@ -53,7 +52,7 @@ export class BundleInserter {
         let inserter;
         if (new_archetype_id === archetype_id) {
             const archetype = world.archetypes.get(archetype_id)!;
-            const archetype_after_insert = archetype.edges.getArchetypeAfterBundleInsertInternal(bundle_id)!;
+            const archetype_after_insert = archetype.edges().__getArchetypeAfterBundleInsertInternal(bundle_id)!;
             debugAssert(archetype_after_insert != null);
 
             const table_id = archetype.table_id;
@@ -64,13 +63,14 @@ export class BundleInserter {
                 archetype,
                 bundle_info,
                 table,
+                // @ts-expect-error
                 ArchetypeMoveType.SameArchetype,
                 change_tick,
                 world
             )
         } else {
-            const [archetype, new_archetype] = world.archetypes.get2(archetype_id, new_archetype_id);
-            const archetype_after_insert = archetype.edges.getArchetypeAfterBundleInsertInternal(bundle_id);
+            const [archetype, new_archetype] = world.archetypes.__get2(archetype_id, new_archetype_id);
+            const archetype_after_insert = archetype.edges().__getArchetypeAfterBundleInsertInternal(bundle_id);
             debugAssert(archetype_after_insert != null);
 
             const table_id = archetype.table_id;
@@ -83,6 +83,7 @@ export class BundleInserter {
                     archetype,
                     bundle_info,
                     table,
+                    // @ts-expect-error
                     ArchetypeMoveType.NewArchetypeSameTable(new_archetype),
                     change_tick,
                     world
@@ -94,6 +95,7 @@ export class BundleInserter {
                     archetype,
                     bundle_info,
                     table,
+                    // @ts-expect-error
                     ArchetypeMoveType.NewArchetypeNewTable(new_archetype, new_table),
                     change_tick,
                     world
@@ -102,6 +104,7 @@ export class BundleInserter {
         };
 
         if (is_new_created) {
+            // @ts-expect-error
             inserter.#world.intoDeferred().trigger(new ArchetypeCreated(new_archetype_id));
         }
 
@@ -113,6 +116,7 @@ export class BundleInserter {
         loc: EntityLocation,
         bundle: T,
         insert_mode: InsertMode,
+        // @ts-expect-error
         relationship_hook_mode: RelationshipHookMode
     ) {
         const bundle_info = this.#bundle_info,
@@ -121,11 +125,14 @@ export class BundleInserter {
 
         const deferred_world = this.#world.intoDeferred();
 
+        // @ts-expect-error
         deferred_world.triggerOnReplace(archetype, entity, archetype_after_insert.iterExisting(), relationship_hook_mode);
 
         const table = this.#table;
+        // @ts-ignore
         let new_archetype, new_location, after_effect;
 
+        // @ts-expect-error
         if (this.#archetype_move_type === ArchetypeMoveType.SameArchetype) {
             const sparse_sets = this.#world.storages.sparse_sets;
 

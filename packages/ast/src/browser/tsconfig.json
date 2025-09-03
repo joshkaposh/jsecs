@@ -1,0 +1,10 @@
+{
+    "extends": "@repo/typescript-config/jsecs.json",
+    "compilerOptions": {
+        "lib": [
+            "DOM",
+            "DOM.Iterable",
+            "DOM.AsyncIterable"
+        ]
+    }
+}

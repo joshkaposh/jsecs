@@ -1,6 +1,6 @@
-import { insert, entry } from "@repo/util";
+import { insert } from "@repo/util";
 import type { ComponentId, Tick } from "../component";
-import type { Components } from "../component/info";
+import type { Components } from "../component/components";
 import type { RequiredComponentConstructor } from "../component/required";
 import { type SparseSets, type Storages, type Table, type TableRow } from "../storage";
 import { StorageType } from "../component/storage-type";
@@ -58,13 +58,13 @@ export class BundleInfo {
                 depth_first_components.set(required_id, required_component.clone());
             }
 
-            storages.prepare_component(info);
+            storages.__prepareComponent(info);
         }
 
         const required_components = iter(depth_first_components)
             .filter(([required_id]) => !explicit_component_ids.has(required_id))
             .inspect(([required_id]) => {
-                storages.prepare_component(components.getInfo(required_id)!);
+                storages.__prepareComponent(components.getInfo(required_id)!);
                 component_ids.push(required_id);
             })
             .map(([_, required_component]) => required_component.ctor)
@@ -106,7 +106,9 @@ export class BundleInfo {
         table: Table,
         sparse_sets: SparseSets,
         bundle_component_status: S,
+        // @ts-ignore
         required_components: Iterable<RequiredComponentConstructor>,
+        // @ts-ignore
         entity: Entity,
         table_row: TableRow,
         change_tick: Tick,
@@ -125,7 +127,7 @@ export class BundleInfo {
                 } else if (status === ComponentStatus.Existing && insert_mode === InsertMode.Replace) {
                     column.__replace(table_row, component_ptr, change_tick);
                 } else if (status === ComponentStatus.Existing && insert_mode === InsertMode.Keep) {
-                    table.getDropFor(component_id)?.call(null, component_ptr);
+                    // table.getDropFor(component_id)?.call(null, component_ptr);
                 }
             } else {
                 const sparse_set = sparse_sets.get(component_id)!;
@@ -134,15 +136,15 @@ export class BundleInfo {
                 if (status === ComponentStatus.Added || insert_mode === InsertMode.Replace) {
 
                 } else if (status === ComponentStatus.Existing && insert_mode === InsertMode.Keep) {
-                    sparse_set.getDrop()?.call(null, component_ptr);
+                    // sparse_set.getDrop()?.call(null, component_ptr);
                 }
             }
             bundle_component++;
         });
 
-        for (const required_component of required_components) {
-            required_component.initialize(table, sparse_sets, change_tick, table_row, entity);
-        }
+        // for (const required_component of required_components) {
+        //     required_component.initialize(table, sparse_sets, change_tick, table_row, entity);
+        // }
 
         return after_effect;
     }

@@ -3,10 +3,9 @@ import type { Component } from "./define";
 type SourceComponent = any;
 type ComponentCloneCtx = any;
 
-
-
 export type ComponentCloneFn = (source_component: SourceComponent, component_clone_context: ComponentCloneCtx) => void;
 
+export type ComponentCloneBehaviorType = 0 | 1 | ComponentCloneFn;
 export class ComponentCloneBehavior {
     #type: 0 | 1 | ComponentCloneFn;
     constructor(type: 0 | 1 | ComponentCloneFn = 0) {

@@ -1,15 +1,10 @@
 import type { Iterator } from "joshkaposh-iterator";
 import type { Option } from "joshkaposh-option";
 import { unit } from "@repo/util";
-import { type ComponentTicks, Tick, type Resource, Components, type ResourceComponentInfo } from "../component";
+import { type ComponentTicks, type Tick, type Resource, Components, type ResourceComponentInfo, checkTicksNumber } from "../component";
 import type { ArchetypeComponentId } from "../archetype";
-import { Mut, Ticks, TicksMut } from "../change-detection";
+import { Mut, TicksMut } from "../change-detection";
 import { SparseSet } from "./sparse-set";
-
-// import { type ComponentId, type Components, ComponentTicks, type Resource, Tick, check_tick_and_assign } from "../component/component";
-// import type { ArchetypeComponentId } from "@ecs/core/archetype";
-// import { $read_and_write, Mut, TicksMut } from "@ecs/core/change-detection";
-// import { SparseSet, ThinSparseSet } from "./sparse-set";
 
 class ResourceData<R extends Resource> {
     #data: Option<InstanceType<R>>;
@@ -49,7 +44,7 @@ class ResourceData<R extends Resource> {
     getMut(last_run: Tick, this_run: Tick): Mut<R> | undefined {
         const data = this.getWithTicks();
         if (data) {
-            return new Mut<R>(data[0], TicksMut(data[1], last_run, this_run));
+            return new Mut<R>(data[0], TicksMut.fromCells(data[1], last_run, this_run));
         }
     }
 
@@ -93,8 +88,8 @@ class ResourceData<R extends Resource> {
     checkChangeTicks(change_tick: Tick) {
         const added = this.#added_ticks;
         const changed = this.#changed_ticks;
-        this.#added_ticks = Tick.checkAssign(added, change_tick);
-        this.#added_ticks = Tick.checkAssign(changed, change_tick);
+        this.#added_ticks = checkTicksNumber(added, change_tick);
+        this.#added_ticks = checkTicksNumber(changed, change_tick);
     }
 }
 

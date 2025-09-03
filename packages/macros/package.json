@@ -1,0 +1,24 @@
+{
+  "name": "@repo/macros",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {},
+  "exports": {
+    "bun": "./src/index.ts",
+    "development": "./src/index.ts",
+    "import": "./src/index.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.2.20",
+    "@repo/typescript-config": "workspace:*"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "estree-toolkit": "^1.7.13",
+    "meriyah": "^6.1.4",
+    "ts-morph": "^26.0.0"
+  }
+}

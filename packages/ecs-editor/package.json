@@ -1,0 +1,25 @@
+{
+  "name": "@ecs/editor",
+  "type": "module",
+  "scripts": {
+    "dev": "bun ./src/server.ts",
+    "dev:watch": "bun ./src/server.ts",
+    "build": "bun ./scripts/build.ts"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./examples": "./examples/**/*"
+  },
+  "devDependencies": {
+    "@types/bun": "catalog:",
+    "bun-plugin-solid": "^1.0.0"
+  },
+  "peerDependencies": {
+    "typescript": "catalog:"
+  },
+  "dependencies": {
+    "@solidjs/router": "^0.15.3",
+    "ts-morph": "^26.0.0",
+    "@repo/ast": "workspace:*"
+  }
+}

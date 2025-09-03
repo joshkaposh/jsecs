@@ -8,14 +8,14 @@
   "scripts": {
     "test": "bun test",
     "test:watch": "bun test --watch",
-    "build": "bun build ./src/lib.ts --outdir ./build"
+    "build": "bun build ./src/index.ts --outdir ./build --target bun --format esm --minify",
+    "build:tsc": "tsc -p ./tsconfig.prod.json"
   },
   "exports": {
+    ".": "./src/index.ts",
+    "./macros": "./macros/index.ts",
     "./entity": "./src/entity/index.ts",
-    "./component": {
-      "import": "./src/component/index.ts",
-      "types": "./src/component/index.ts"
-    },
+    "./component": "./src/component/index.ts",
     "./define": "./src/define.ts",
     "./storage": "./src/storage/index.ts",
     "./storage:table": "./src/storage/table/index.ts",
@@ -23,14 +23,16 @@
     "./storage:resource": "./src/storage/resources.ts"
   },
   "devDependencies": {
+    "@types/bun": "catalog:*",
     "@repo/typescript-config": "workspace:*",
-    "@repo/test": "workspace:*",
-    "@types/bun": "^1.2.20",
-    "typescript": "latest"
+    "@repo/test": "workspace:*"
   },
   "dependencies": {
-    "@repo/util": "*",
+    "@repo/util": "workspace:*",
     "joshkaposh-iterator": "^1.1.15",
     "joshkaposh-option": "^1.1.9"
+  },
+  "peerDependencies": {
+    "typescript": "catalog:"
   }
 }
